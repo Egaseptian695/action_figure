@@ -11,24 +11,45 @@ class Admin extends Controller {
     }
 
     public function index() {
-    $data['judul'] = 'Dashboard Admin';
+        $data['judul'] = 'Dashboard Admin';
 
-    // Ambil data statistik
-    $data['total_produk'] = count($this->model('Product_model')->getAllProducts());
-    $data['total_transaksi'] = count($this->model('Transaction_model')->getAllTransactions());
+        // Ambil data statistik (Kode Aslimu)
+        $data['total_produk'] = count($this->model('Product_model')->getAllProducts());
+        $data['total_transaksi'] = count($this->model('Transaction_model')->getAllTransactions());
+        $data['top_terjual'] = $this->model('Transaction_model')->getTopTerjual();
+        $data['top_diminati'] = $this->model('Transaction_model')->getTopDiminati();
 
-    // total pendapatan
-    $transactions = $this->model('Transaction_model')->getAllTransactions();
-    $total = 0;
-    foreach ($transactions as $t) {
-        $total += $t['total_harga'];
+        // Total pendapatan keseluruhan (Kode Aslimu)
+        $transactions = $this->model('Transaction_model')->getAllTransactions();
+        $total = 0;
+        foreach ($transactions as $t) {
+            $total += $t['total_harga'];
+        }
+        $data['total_pendapatan'] = $total;
+
+        // ==========================================
+        // TAMBAHAN BARU: PENGOLAHAN DATA GRAFIK
+        // ==========================================
+        // 1. Ambil data mentah dari database
+        $grafik_db = $this->model('Transaction_model')->getGrafikPendapatan();
+        
+        // 2. Siapkan array kosong untuk 12 bulan (Januari - Desember) dengan nilai awal 0
+        $grafik_data = array_fill(1, 12, 0);
+        
+        // 3. Timpa angka 0 dengan total pendapatan asli jika di bulan tersebut ada transaksi
+        foreach($grafik_db as $g) {
+            $grafik_data[$g['bulan']] = $g['total'];
+        }
+        
+        // 4. Ubah array menjadi format JSON agar mudah dibaca oleh JavaScript Chart.js
+        $data['grafik_json'] = json_encode(array_values($grafik_data));
+        // ==========================================
+
+        // Tampilkan ke halaman View
+        $this->view('templates/header', $data);
+        $this->view('admin/dashboard', $data);
+        $this->view('templates/footer');
     }
-    $data['total_pendapatan'] = $total;
-
-    $this->view('templates/header', $data);
-    $this->view('admin/dashboard', $data);
-    $this->view('templates/footer');
-}
     // Kelola pesanan
     public function orders() {
         $data['judul'] = 'Kelola Pesanan';

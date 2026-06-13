@@ -11,7 +11,6 @@ class Transaction_model {
     // 🛒 CART
     // =========================
 
-    // Ambil cart berdasarkan user
     public function getCartByUser($id_user) {
         $this->db->query("
             SELECT c.*, p.nama_produk, p.harga, p.gambar 
@@ -23,7 +22,6 @@ class Transaction_model {
         return $this->db->resultSet();
     }
 
-    // Tambah ke cart
     public function addToCart($data) {
         $query = "INSERT INTO carts (id_user, id_product, jumlah)
                   VALUES (:user, :product, :jumlah)
@@ -38,7 +36,6 @@ class Transaction_model {
         return $this->db->rowCount();
     }
 
-    // Hapus item cart
     public function deleteCart($id_cart) {
         $this->db->query("DELETE FROM carts WHERE id_cart = :id");
         $this->db->bind('id', $id_cart);
@@ -55,7 +52,7 @@ class Transaction_model {
         try {
             $this->db->beginTransaction();
 
-            // Insert transaksi (TANPA alamat_pengiriman karena tidak ada di DB)
+            // Insert transaksi
             $this->db->query("
                 INSERT INTO transactions 
                 (id_user, total_harga, tipe_pesanan)
@@ -67,7 +64,6 @@ class Transaction_model {
             $this->db->bind('tipe', $data['tipe_pesanan']);
             $this->db->execute();
 
-            // Ambil ID transaksi
             $id_transaksi = $this->db->lastInsertId();
 
             // Insert detail transaksi
@@ -91,7 +87,6 @@ class Transaction_model {
             $this->db->execute();
 
             $this->db->commit();
-
             return $id_transaksi;
 
         } catch (Exception $e) {
@@ -104,13 +99,12 @@ class Transaction_model {
     // 💳 PAYMENT
     // =========================
 
-    // Ambil transaksi berdasarkan ID
     public function getTransactionById($id) {
-    $this->db->query("SELECT * FROM transactions WHERE id_transaksi = :id");
-    $this->db->bind('id', $id);
-    return $this->db->single();
+        $this->db->query("SELECT * FROM transactions WHERE id_transaksi = :id");
+        $this->db->bind('id', $id);
+        return $this->db->single();
     }
-    // Simpan pembayaran
+
     public function addPayment($data) {
         $query = "INSERT INTO payments 
                   (id_transaksi, metode, jumlah_bayar, status_bayar)
@@ -134,62 +128,114 @@ class Transaction_model {
         return true;
     }
 
+    public function createPayment($data) {
+        $this->db->query("
+            INSERT INTO payments (id_transaksi, metode, jumlah_bayar, status_bayar)
+            VALUES (:transaksi, :metode, :jumlah, 'lunas')
+        ");
+
+        $this->db->bind('transaksi', $data['id_transaksi']);
+        $this->db->bind('metode', $data['metode']);
+        $this->db->bind('jumlah', $data['jumlah_bayar']);
+
+        $this->db->execute();
+        return $this->db->rowCount();
+    }
+
     // =========================
-    // 📦 TRANSACTION HISTORY
+    // 📦 TRANSACTION HISTORY & ADMIN
     // =========================
 
     public function getTransactionByUser($id_user) {
+        // Trik GROUP_CONCAT untuk menggabungkan nama produk dan jumlahnya
         $this->db->query("
-            SELECT * FROM transactions 
-            WHERE id_user = :id_user
-            ORDER BY id_transaksi DESC
+            SELECT t.*, 
+                   GROUP_CONCAT(CONCAT('• ', p.nama_produk, ' (', td.jumlah, ' pcs)') SEPARATOR '<br>') as detail_produk
+            FROM transactions t
+            LEFT JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
+            LEFT JOIN products p ON td.id_product = p.id_product
+            WHERE t.id_user = :id_user
+            GROUP BY t.id_transaksi
+            ORDER BY t.id_transaksi DESC
         ");
         $this->db->bind('id_user', $id_user);
         return $this->db->resultSet();
     }
-    // Ambil semua transaksi (admin)
-public function getAllTransactions() {
-    $this->db->query("
-        SELECT t.*, u.nama 
-        FROM transactions t
-        JOIN users u ON t.id_user = u.id_user
-        ORDER BY t.id_transaksi DESC
-    ");
-    return $this->db->resultSet();
-}
 
-// Update status pesanan
-public function updateStatus($id, $status) {
-    $this->db->query("
-        UPDATE transactions 
-        SET status_pesanan = :status 
-        WHERE id_transaksi = :id
-    ");
-    $this->db->bind('status', $status);
-    $this->db->bind('id', $id);
-    $this->db->execute();
+    public function getAllTransactions() {
+        $this->db->query("
+            SELECT t.*, u.nama,
+                   GROUP_CONCAT(CONCAT('• ', p.nama_produk, ' (', td.jumlah, ' pcs)') SEPARATOR '<br>') as detail_produk
+            FROM transactions t
+            JOIN users u ON t.id_user = u.id_user
+            LEFT JOIN transaction_details td ON t.id_transaksi = td.id_transaksi
+            LEFT JOIN products p ON td.id_product = p.id_product
+            GROUP BY t.id_transaksi
+            ORDER BY t.id_transaksi DESC
+        ");
+        return $this->db->resultSet();
+    }
 
-    return $this->db->rowCount();
-}
-public function createPayment($data) {
-    $this->db->query("
-        INSERT INTO payments (id_transaksi, metode, jumlah_bayar, status_bayar)
-        VALUES (:transaksi, :metode, :jumlah, 'lunas')
-    ");
+    public function updateStatus($id, $status) {
+        $this->db->query("
+            UPDATE transactions 
+            SET status_pesanan = :status 
+            WHERE id_transaksi = :id
+        ");
+        $this->db->bind('status', $status);
+        $this->db->bind('id', $id);
+        $this->db->execute();
 
-    $this->db->bind('transaksi', $data['id_transaksi']);
-    $this->db->bind('metode', $data['metode']);
-    $this->db->bind('jumlah', $data['jumlah_bayar']);
+        return $this->db->rowCount();
+    }
 
-    $this->db->execute();
+    public function deleteTransaction($id) {
+        $this->db->query("DELETE FROM transactions WHERE id_transaksi = :id");
+        $this->db->bind('id', $id);
+        $this->db->execute();
 
-    return $this->db->rowCount();
-}
-public function deleteTransaction($id) {
-    $this->db->query("DELETE FROM transactions WHERE id_transaksi = :id");
-    $this->db->bind('id', $id);
-    $this->db->execute();
+        return $this->db->rowCount();
+    }
 
-    return $this->db->rowCount();
-}
+    // =========================
+    // 📊 ANALYTICS
+    // =========================
+
+    public function getTopTerjual() {
+        $this->db->query("
+            SELECT p.nama_produk, SUM(td.jumlah) as total_terjual 
+            FROM transaction_details td 
+            JOIN products p ON td.id_product = p.id_product 
+            GROUP BY p.id_product, p.nama_produk 
+            ORDER BY total_terjual DESC 
+            LIMIT 5
+        ");
+        return $this->db->resultSet();
+    }
+
+    public function getTopDiminati() {
+        $this->db->query("
+            SELECT p.nama_produk, COUNT(w.id_wishlist) as total_wishlist 
+            FROM wishlists w 
+            JOIN products p ON w.id_product = p.id_product 
+            GROUP BY p.id_product, p.nama_produk 
+            ORDER BY total_wishlist DESC 
+            LIMIT 5
+        ");
+        return $this->db->resultSet();
+    }
+    // =========================
+    // 📈 GRAFIK PENDAPATAN BULANAN
+    // =========================
+    public function getGrafikPendapatan() {
+        // Mengambil total harga dan mengelompokkannya berdasarkan bulan di tahun saat ini
+        $this->db->query("
+            SELECT MONTH(tanggal) as bulan, SUM(total_harga) as total
+            FROM transactions
+            WHERE YEAR(tanggal) = YEAR(CURDATE())
+            GROUP BY MONTH(tanggal)
+            ORDER BY MONTH(tanggal) ASC
+        ");
+        return $this->db->resultSet();
+    }
 }

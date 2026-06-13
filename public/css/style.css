@@ -57,18 +57,6 @@ h1, h2, h3 { text-transform: uppercase; letter-spacing: 1.5px; }
     color: var(--white);
 }
 
-/* Bagian Hero (Banner Utama) */
-.hero {
-    background-color: var(--black);
-    color: var(--white);
-    text-align: center;
-    padding: 120px 20px;
-    border-bottom: 5px solid var(--gray-dark);
-}
-
-.hero h1 { font-size: 3.5rem; margin-bottom: 10px; }
-.hero p { font-size: 1.2rem; color: var(--gray-light); margin-bottom: 30px; letter-spacing: 1px; }
-
 /* Grid Produk */
 .product-section {
     max-width: 1200px;
@@ -119,3 +107,54 @@ h1, h2, h3 { text-transform: uppercase; letter-spacing: 1.5px; }
 .card-info h3 { font-size: 1.1rem; margin-bottom: 5px; }
 .card-info .price { font-weight: bold; font-size: 1.2rem; margin-bottom: 15px; }
 .badge { display: inline-block; padding: 3px 8px; border: 1px solid var(--black); font-size: 0.7rem; font-weight: bold; margin-bottom: 10px; }
+
+/* =======================================================
+   RESPONSIVE MOBILE (Layar di bawah 768px / seukuran HP)
+======================================================== */
+@media (max-width: 768px) {
+    /* 1. Rapikan Navbar agar tidak bertabrakan */
+    .navbar {
+        flex-direction: column;
+        padding: 15px;
+        gap: 15px;
+    }
+    .navbar-nav, .navbar-icons {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    /* 2. Kecilkan Teks Hero Banner */
+    .hero-banner {
+        padding: 50px 15px;
+        margin-bottom: 30px;
+    }
+    .hero-banner h1 {
+        font-size: 32px; /* Dikecilkan dari 48px */
+    }
+    .hero-banner p {
+        font-size: 15px;
+    }
+
+    /* 3. Sesuaikan Kotak Pencarian Mengambang */
+    .search-floating {
+        width: 90%;
+        left: 5%;
+        right: 5%;
+        top: 130px; /* Turunkan sedikit karena navbar sekarang bersusun ke bawah */
+    }
+
+    /* 4. Sesuaikan Tombol WhatsApp Mengambang (Hanya tampilkan ikon agar tidak menutupi layar) */
+    .floating-wa {
+        padding: 15px;
+        border-radius: 50%; /* Ubah jadi bulat */
+        bottom: 20px;
+        right: 20px;
+    }
+    .floating-wa i {
+        margin: 0;
+    }
+    .floating-wa span, .floating-wa font {
+        display: none; /* Sembunyikan teks "Chat Admin" di HP */
+    }
+}

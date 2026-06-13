@@ -11,10 +11,9 @@
     backdrop-filter: blur(4px); 
     
     color: #fff;
-    padding: 100px 20px; /* Saya buat sedikit lebih tinggi agar proporsional */
+    padding: 100px 20px; 
     text-align: center;
     margin-bottom: 50px;
-    border-bottom: 4px solid #111;
 }
 
 .hero-banner h1 {
@@ -87,11 +86,21 @@
 
 /* 3. TRUST BADGES */
 .trust-section {
-    background: #f9f9f9;
-    border-top: 2px solid #111;
-    border-bottom: 2px solid #111;
+    background: rgba(17, 17, 17, 0.65); /* Saya buat sedikit lebih gelap agar teks lebih terbaca */
+    backdrop-filter: blur(6px);
+    color: #fff;
+    
+    /* Ubah border atas-bawah jadi border keliling */
+    border: 3px solid #111111; 
+    
     padding: 40px 20px;
-    margin-top: 60px;
+    
+    /* Posisikan di tengah dan samakan lebarnya dengan daftar produk */
+    margin: 60px auto 0 auto; 
+    max-width: 1200px; 
+    
+    /* Tambahkan bayangan tegas khas Brutalist */
+    box-shadow: 8px 8px 0px #111111; 
 }
 
 .trust-grid {
@@ -107,12 +116,12 @@
     font-size: 18px;
     text-transform: uppercase;
     margin-bottom: 10px;
-    color: #111;
+    color: #fff;
 }
 
 .trust-item p {
     font-size: 14px;
-    color: #555;
+    color: #ccc;
 }
 
 /* =========================================
@@ -134,6 +143,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 25px;
+    color: #fff;
 }
 
 .card {
@@ -221,32 +231,68 @@
     background: #111;
     color: #fff;
 }
+/* --- LABEL STOK DI POJOK GAMBAR --- */
+.badge-stock {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    border: 2px solid #111111;
+    box-shadow: 3px 3px 0px #111111; /* Bayangan Brutalist */
+    z-index: 2; /* Agar labelnya muncul di atas gambar */
+}
+
+/* Warna khusus agar gampang dibedakan pelanggan */
+.stock-ready {
+    background-color: #00d2ff; /* Biru Cyan Elektrik */
+    color: #111111;
+}
+
+.stock-po {
+    background-color: #ff007f; /* Hot Pink / Magenta */
+    color: #ffffff;
+}
 </style>
 
-<!-- BAGIAN 1: HERO BANNER BARU -->
-<div class="hero-banner">
-    <h1>Elevate Your Collection</h1>
-    <p>Temukan ratusan action figure eksklusif dan rare item dari seri Anime, Game, dan Tokusatsu favoritmu.</p>
-    <a href="<?= BASEURL; ?>/product" class="btn-hero">Lihat Semua Katalog</a>
-</div>
+<?php 
+// 1. Kita buat alat pendeteksi pencarian.
+// Biasanya input pencarian menggunakan atribut name="keyword" atau name="search" (baik via GET maupun POST)
+$sedang_mencari = isset($_GET['keyword']) || isset($_POST['keyword']) || isset($_GET['search']) || isset($_POST['search']);
 
-<!-- BAGIAN 2: KATEGORI CEPAT -->
-<div class="category-section">
-    <a href="<?= BASEURL; ?>/product/kategori/Anime" class="category-card">
-        <h3>✦ Anime Figures</h3>
-    </a>
-    <a href="<?= BASEURL; ?>/product/kategori/Game" class="category-card">
-        <h3>✦ Game Characters</h3>
-    </a>
-    <a href="<?= BASEURL; ?>/product/kategori/Mecha" class="category-card">
-        <h3>✦ Mecha & Model Kit</h3>
-    </a>
-</div>
+// 2. Jika TIDAK sedang mencari (!), barulah banner dan kategori ditampilkan
+if (!$sedang_mencari) : 
+?>
+
+    <div class="hero-banner">
+        <h1>Elevate Your Collection</h1>
+        <p>Temukan ratusan action figure eksklusif dan rare item dari seri Anime, Game, dan Tokusatsu favoritmu.</p>
+        
+        <a href="<?= BASEURL; ?>/product" class="btn-hero" style="margin-bottom: 30px;">Lihat Semua Katalog</a>
+    </div>
+
+    <div class="category-section">
+        <a href="<?= BASEURL; ?>/product/kategori/Anime" class="category-card">
+            <h3>✦ Anime Figures</h3>
+        </a>
+        <a href="<?= BASEURL; ?>/product/kategori/Game" class="category-card">
+            <h3>✦ Game Characters</h3>
+        </a>
+        <a href="<?= BASEURL; ?>/product/kategori/Mecha" class="category-card">
+            <h3>✦ Mecha & Model Kit</h3>
+        </a>
+    </div>
+
+<?php endif; ?>
 
 <!-- BAGIAN 3: KOLEKSI TERBARU (KODE ASLI KAMU) -->
 <!-- Saya tambahkan wrapper max-width agar sejajar rapi dengan kategori di atasnya -->
 <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
-    
+    <!-- SEARCH BAR B/W RETRO -->
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+
     <h1 class="section-title">Koleksi Terbaru</h1>
 
     <div class="product-container">
@@ -255,6 +301,18 @@
 
             <div class="card">
                 <div class="card-img-wrapper">
+                    <?php 
+                        // PENTING: Ganti 'status_barang' dengan NAMA KOLOM yang benar di database-mu
+                        // (misalnya 'status', 'tipe_stok', 'ketersediaan', dll)
+                        $status_stok = isset($product['status']) ? strtolower($product['status']) : 'ready';
+                        
+                        // Jika kata di database mengandung unsur "pre", "po", atau "pre order"
+                        if (strpos($status_stok, 'pre') !== false || $status_stok == 'po') {
+                            echo '<span class="badge-stock stock-po">Pre Order</span>';
+                        } else {
+                            echo '<span class="badge-stock stock-ready">Ready Stock</span>';
+                        }
+                    ?>
                     <img src="<?= BASEURL; ?>/img/products/<?= $product['gambar']; ?>" alt="<?= $product['nama_produk']; ?>">
                     <button class="btn-wishlist" data-id="<?= $product['id_product']; ?>" title="Tambah ke Wishlist">🤍</button>
                 </div>
@@ -274,7 +332,7 @@
 
         <?php endforeach; ?>
     <?php else : ?>
-        <div style="grid-column: 1 / -1; text-align: center; padding: 50px; border: 1px dashed #111;">
+        <div style="grid-column: 1 / -1; text-align: center; padding: 50px; border: 1px dashed #fff;">
             <p>Produk belum tersedia untuk saat ini.</p>
         </div>
     <?php endif; ?>

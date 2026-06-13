@@ -1,5 +1,5 @@
 <?php /** @var array $data */ ?>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 /* Sidebar & Layout Admin (Konsisten dengan halaman lain) */
 .admin-container { display: flex; max-width: 1200px; margin: 40px auto; padding: 0 20px; gap: 30px; align-items: flex-start; }
@@ -82,6 +82,64 @@
     background: #ffffff;
     color: #111111;
 }
+/* --- ANALYTICS SECTION --- */
+.analytics-section {
+    margin-top: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+}
+
+.analytics-card {
+    flex: 1;
+    min-width: 300px;
+    background: #ffffff;
+    border: 2px solid #111111;
+    box-shadow: 6px 6px 0px #111111;
+    padding: 25px;
+}
+
+.analytics-card h3 {
+    font-size: 18px;
+    text-transform: uppercase;
+    border-bottom: 2px solid #111111;
+    display: inline-block;
+    padding-bottom: 5px;
+    margin-bottom: 20px;
+}
+
+.analytics-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.analytics-table th, .analytics-table td {
+    padding: 10px;
+    border-bottom: 1px solid #dddddd;
+    text-align: left;
+    font-size: 14px;
+}
+
+.analytics-table th {
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #111111;
+    border-bottom: 2px solid #111111;
+}
+
+.analytics-table tr:last-child td {
+    border-bottom: none;
+}
+
+.badge-rank {
+    background: #111111;
+    color: #ffffff;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 4px;
+    margin-right: 10px;
+}
 </style>
 
 <div class="admin-container">
@@ -107,7 +165,7 @@
             <!-- PRODUK -->
             <div class="card">
                 <div>
-                    <h3>📦 Produk</h3>
+                    <h3><i class="fa-solid fa-box" style="color: rgb(28, 37, 53);"></i> Produk</h3>
                     <p class="stats"><?= isset($data['total_produk']) ? $data['total_produk'] : '-'; ?></p>
                     <p>Total data produk di etalase</p>
                 </div>
@@ -117,7 +175,7 @@
             <!-- PESANAN -->
             <div class="card">
                 <div>
-                    <h3>🧾 Pesanan</h3>
+                    <h3><i class="fa-regular fa-file-lines" style="color: rgb(28, 37, 53);"></i> Pesanan</h3>
                     <p class="stats"><?= isset($data['total_transaksi']) ? $data['total_transaksi'] : '-'; ?></p>
                     <p>Total riwayat pesanan masuk</p>
                 </div>
@@ -127,7 +185,7 @@
             <!-- PENDAPATAN -->
             <div class="card">
                 <div>
-                    <h3>💰 Pendapatan</h3>
+                    <h3><i class="fa-solid fa-sack-dollar" style="color: rgb(28, 37, 53);"></i> Pendapatan</h3>
                     <p class="stats" style="font-size: 24px;">
                         Rp <?= isset($data['total_pendapatan']) ? number_format($data['total_pendapatan'], 0, ',', '.') : '0'; ?>
                     </p>
@@ -135,16 +193,132 @@
                 </div>
             </div>
 
-            <!-- STATUS -->
-            <div class="card">
-                <div>
-                    <h3>🚚 Status Pesanan</h3>
-                    <p class="stats">Update</p>
-                    <p>Pending / Diproses / Dikirim</p>
-                </div>
-                <a href="<?= BASEURL; ?>/admin/orders" class="btn-retro">Cek Status</a>
+            <div style="background: #ffffff; border: 3px solid #111111; box-shadow: 6px 6px 0px #111111; padding: 25px; margin-top: 40px; margin-bottom: 20px;">
+            <h3 style="font-size: 18px; text-transform: uppercase; border-bottom: 2px solid #111111; display: inline-block; padding-bottom: 5px; margin-bottom: 20px; margin-top: 0;">
+                📈 Kurva Pendapatan Tahun Ini
+            </h3>
+            <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+            </div> <div class="analytics-section">
+            
+            <div class="analytics-card">
+                <h3><i class="fa-solid fa-chart-bar" style="color: rgb(28, 37, 53);"></i> Paling Banyak Dibeli</h3>
+                <table class="analytics-table">
+                    <thead>
+                        <tr>
+                            <th>Produk</th>
+                            <th style="text-align: center;">Terjual</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($data['top_terjual'])) : ?>
+                            <?php $no = 1; foreach ($data['top_terjual'] as $top) : ?>
+                                <tr>
+                                    <td style="font-weight: bold;">
+                                        <span class="badge-rank">#<?= $no++; ?></span> 
+                                        <?= $top['nama_produk']; ?>
+                                    </td>
+                                    <td style="text-align: center; font-weight: 900; color: #27ae60;">
+                                        <?= $top['total_terjual']; ?> pcs
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else : ?>
+                            <tr>
+                                <td colspan="2" style="text-align: center; padding: 20px; color: #777;">Belum ada data penjualan.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
 
+            <div class="analytics-card">
+                <h3><i class="fa-solid fa-heart" style="color: rgb(28, 37, 53);"></i> Paling Diminati (Wishlist)</h3>
+                <table class="analytics-table">
+                    <thead>
+                        <tr>
+                            <th>Produk</th>
+                            <th style="text-align: center;">Disimpan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($data['top_diminati'])) : ?>
+                            <?php $no = 1; foreach ($data['top_diminati'] as $fav) : ?>
+                                <tr>
+                                    <td style="font-weight: bold;">
+                                        <span class="badge-rank">#<?= $no++; ?></span> 
+                                        <?= $fav['nama_produk']; ?>
+                                    </td>
+                                    <td style="text-align: center; font-weight: 900; color: #e74c3c;">
+                                        <?= $fav['total_wishlist']; ?> user
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else : ?>
+                            <tr>
+                                <td colspan="2" style="text-align: center; padding: 20px; color: #777;">Belum ada data wishlist.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+            </div> 
         </div>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+    // Mengambil data JSON dari Controller PHP
+    const dataPendapatan = <?= $data['grafik_json']; ?>;
+
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    
+    // Konfigurasi Chart dengan gaya Brutalist (Garis tebal, warna monokrom retro)
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+            datasets: [{
+                label: 'Total Pendapatan (Rp)',
+                data: dataPendapatan,
+                borderColor: '#111111', // Warna garis hitam pekat
+                borderWidth: 4, // Garis tebal
+                backgroundColor: 'rgba(17, 17, 17, 0.1)', // Warna isian di bawah kurva
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: '#111111',
+                pointBorderWidth: 3,
+                pointRadius: 5,
+                pointHoverRadius: 8,
+                fill: true,
+                tension: 0.3 // Sedikit lengkungan agar elegan, tapi tetap tegas
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false } // Sembunyikan label legend agar lebih bersih
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#dddddd', borderDash: [5, 5] },
+                    ticks: {
+                        font: { weight: 'bold' },
+                        callback: function(value) {
+                            // Format angka ke Rupiah di sumbu Y
+                            if (value === 0) return 'Rp 0';
+                            return 'Rp ' + (value / 1000000) + ' Jt';
+                        }
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { weight: 'bold' } }
+                }
+            }
+        }
+    });
+</script>
     </main>
 </div>

@@ -8,12 +8,36 @@ class Product_model {
         $this->db = new Database;
     }
 
-    // Ambil semua produk
-    public function getAllProducts() {
-        $this->db->query("SELECT * FROM " . $this->table . " ORDER BY id_product DESC");
+    // Tambahkan parameter $sort dengan nilai bawaan 'terbaru'
+    public function getAllProducts($sort = 'terbaru', $limit = 8, $offset = 0) {
+        $limit = (int)$limit;
+        $offset = (int)$offset;
+
+        // 1. Tulis query dasar
+        $query = "SELECT * FROM products";
+        
+        // 2. Tambahkan sorting
+        if ($sort == 'termurah') {
+            $query .= " ORDER BY harga ASC";
+        } elseif ($sort == 'termahal') {
+            $query .= " ORDER BY harga DESC";
+        } else {
+            $query .= " ORDER BY id_product DESC";
+        }
+
+        // 3. Tambahkan batasan halaman (PASTIKAN BARIS INI ADA DI ATAS QUERY)
+        $query .= " LIMIT $limit OFFSET $offset";
+        
+        // 4. Baru masukkan query yang sudah lengkap ke database
+        $this->db->query($query);
         return $this->db->resultSet();
     }
-
+    // 2. Fungsi baru untuk menghitung total produk (untuk membuat nomor halaman)
+    public function getTotalProducts() {
+        $this->db->query("SELECT * FROM products");
+        $this->db->execute();
+        return $this->db->rowCount();
+    }
     // Ambil produk berdasarkan ID
     public function getProductById($id) {
         $this->db->query("SELECT * FROM " . $this->table . " WHERE id_product = :id");
@@ -148,4 +172,16 @@ public function toggleWishlist($id_user, $id_product) {
         return ['status' => 'added'];
     }
 }
+// Fungsi untuk mencari produk berdasarkan nama atau kategori
+    public function cariDataProduct() {
+        $keyword = $_POST['keyword']; // Menangkap kata kunci dari form pencarian
+
+        // Menggunakan LIKE agar pencarian tidak harus sama persis (bisa potongan kata)
+        $query = "SELECT * FROM products WHERE nama_produk LIKE :keyword OR kategori LIKE :keyword";
+        
+        $this->db->query($query);
+        $this->db->bind('keyword', "%$keyword%");
+        
+        return $this->db->resultSet();
+    }
 }

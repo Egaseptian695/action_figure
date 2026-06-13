@@ -54,7 +54,7 @@
                 <tr>
                     <th>ID Trans.</th>
                     <th>Nama User</th>
-                    <th>Total Bayar</th>
+                    <th>Detail Produk</th> <th>Total Bayar</th>
                     <th>Status Info</th>
                     <th>Aksi & Update</th>
                 </tr>
@@ -64,10 +64,14 @@
                     <?php foreach ($data['orders'] as $order_amega) : ?>
                     <tr>
                         <td style="font-weight: bold;">#<?= $order_amega['id_transaksi']; ?></td>
+                        
                         <td><?= $order_amega['nama']; ?></td>
+                        
+                        <td style="line-height: 1.5; font-size: 14px;">
+                            <?= $order_amega['detail_produk']; ?>
+                        </td>
                         <td style="font-weight: bold;">Rp <?= number_format($order_amega['total_harga'], 0, ',', '.'); ?></td>
                         
-                        <!-- Penanda Visual Status -->
                         <td>
                             <?php 
                                 $statusClass = 'status-pending';
@@ -81,7 +85,6 @@
                         </td>
                         
                         <td>
-                            <!-- Form ubah status -->
                             <form action="<?= BASEURL; ?>/admin/updateStatus" method="POST" class="action-form">
                                 <input type="hidden" name="id_transaksi" value="<?= $order_amega['id_transaksi']; ?>">
                                 
@@ -94,7 +97,6 @@
                                 <button type="submit" class="btn-update">Update</button>
                             </form>
 
-                            <!-- Tombol hapus dimasukkan ke DALAM <td> agar layout tidak rusak -->
                             <?php if ($order_amega['status_pesanan'] == 'selesai') : ?>
                                 <div style="margin-top: 10px;">
                                     <a href="<?= BASEURL; ?>/admin/delete/<?= $order_amega['id_transaksi']; ?>" class="btn-delete-order" onclick="return confirm('Yakin hapus pesanan ini? Data tidak bisa dikembalikan.');">
@@ -107,7 +109,7 @@
                     <?php endforeach; ?>
                 <?php else : ?>
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 30px;">Belum ada pesanan masuk.</td>
+                        <td colspan="6" style="text-align: center; padding: 30px;">Belum ada pesanan masuk.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>

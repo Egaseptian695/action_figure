@@ -3,13 +3,23 @@
 <style>
 /* Memakai ulang styling grid hitam-putih dari Home */
 .katalog-header {
+    color: #111111; 
+    background: #ffffff; 
+    border: 3px solid #111111;
+    padding: 10px 30px; 
+    text-transform: uppercase;
+    font-weight: bold;
+    box-shadow: 6px 6px 0px #111111; 
+    
+    width: fit-content;
+    margin: 0 auto 40px auto; 
     text-align: center;
-    margin: 40px 0;
+    
+    text-decoration: none;
 }
 .katalog-header h1 {
     font-size: 32px;
     text-transform: uppercase;
-    border-bottom: 3px solid #111111;
     display: inline-block;
     padding-bottom: 10px;
 }
@@ -96,12 +106,72 @@
     background: #111111;
     color: #ffffff;
 }
+/* --- LABEL STOK DI POJOK GAMBAR --- */
+.badge-stock {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    border: 2px solid #111111;
+    box-shadow: 3px 3px 0px #111111; /* Bayangan Brutalist */
+    z-index: 2; /* Agar labelnya muncul di atas gambar */
+}
+
+/* Warna khusus agar gampang dibedakan pelanggan */
+.stock-ready {
+    background-color: #00d2ff; /* Biru Cyan Elektrik */
+    color: #111111;
+}
+
+.stock-po {
+    background-color: #ff007f; /* Hot Pink / Magenta */
+    color: #ffffff;
+}
 </style>
 
 <div class="katalog-header">
     <h1><?= $data['judul'] ?? 'Katalog Produk'; ?></h1>
 </div>
-
+<div style="display: flex; justify-content: flex-end; margin-bottom: 30px; max-width: 1200px; margin-left: auto; margin-right: auto; padding: 0 20px;">
+    
+    <form action="<?= BASEURL; ?>/product" method="GET" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <label for="sort" style="font-weight: 900; text-transform: uppercase; color: #111111; background: #ffffff; padding: 8px 15px; border: 3px solid #111111; box-shadow: 4px 4px 0px #111111;">Urutkan:</label>
+        
+        <select name="sort" id="sort" onchange="this.form.submit()" 
+                style="padding: 10px 15px; border: 3px solid #111111; font-size: 14px; font-weight: bold; text-transform: uppercase; outline: none; cursor: pointer; box-shadow: 4px 4px 0px #111111; background: #ffffff; color: #111111; transition: 0.2s;">
+            
+            <option value="terbaru" <?= (($data['sort_aktif'] ?? 'terbaru') == 'terbaru') ? 'selected' : ''; ?>>
+        ✨ Terbaru
+    </option>
+    <option value="termurah" <?= (($data['sort_aktif'] ?? 'terbaru') == 'termurah') ? 'selected' : ''; ?>>
+        💸 Harga: Rendah ke Tinggi
+    </option>
+    <option value="termahal" <?= (($data['sort_aktif'] ?? 'terbaru') == 'termahal') ? 'selected' : ''; ?>>
+        💎 Harga: Tinggi ke Rendah
+    </option>
+            
+        </select>
+    </form>
+</div>
+<?php if (isset($data['total_halaman']) && $data['total_halaman'] > 1) : ?>
+    <div style="display: flex; justify-content: center; gap: 10px; margin-top: 50px; margin-bottom: 20px; flex-wrap: wrap;">
+        
+        <?php for ($i = 1; $i <= $data['total_halaman']; $i++) : ?>
+            
+            <a href="<?= BASEURL; ?>/product?sort=<?= $data['sort_aktif']; ?>&page=<?= $i; ?>" 
+               style="padding: 10px 20px; font-size: 16px; font-weight: 900; text-decoration: none; border: 3px solid #111111; box-shadow: 4px 4px 0px #111111; transition: 0.2s;
+                      background: <?= ($data['halaman_aktif'] == $i) ? '#111111' : '#ffffff'; ?>;
+                      color: <?= ($data['halaman_aktif'] == $i) ? '#ffffff' : '#111111'; ?>;">
+                <?= $i; ?>
+            </a>
+            
+        <?php endfor; ?>
+        
+    </div>
+<?php endif; ?>
 <div class="product-container">
 
 <?php if (!empty($data['products'])) : ?>
@@ -110,6 +180,18 @@
         <div class="card">
             <!-- Posisi tombol wishlist sudah dipindah ke dalam wrapper gambar -->
             <div class="card-img-wrapper">
+                <?php 
+                        // PENTING: Ganti 'status_barang' dengan NAMA KOLOM yang benar di database-mu
+                        // (misalnya 'status', 'tipe_stok', 'ketersediaan', dll)
+                        $status_stok = isset($product['status']) ? strtolower($product['status']) : 'ready';
+                        
+                        // Jika kata di database mengandung unsur "pre", "po", atau "pre order"
+                        if (strpos($status_stok, 'pre') !== false || $status_stok == 'po') {
+                            echo '<span class="badge-stock stock-po">Pre Order</span>';
+                        } else {
+                            echo '<span class="badge-stock stock-ready">Ready Stock</span>';
+                        }
+                    ?>
                 <img src="<?= BASEURL; ?>/img/products/<?= $product['gambar']; ?>" alt="<?= $product['nama_produk']; ?>">
                 
                 <!-- Jika ingin tombol ini memproses input, ubah menjadi form seperti di halaman detail -->

@@ -9,14 +9,24 @@
 }
 
 .cart-header {
+    color: #111111; 
+    background: #ffffff; 
+    border: 3px solid #111111; /* Ini sudah membuat kotak penuh, tidak butuh border-bottom terpisah lagi */
+    padding: 10px 30px; 
+    text-transform: uppercase;
+    font-weight: bold;
+    box-shadow: 6px 6px 0px #111111; 
+    
+    width: fit-content; 
+    margin: 0 auto 40px auto; 
     text-align: center;
-    margin-bottom: 40px;
+    
+    text-decoration: none;
 }
 
 .cart-header h1 {
     font-size: 32px;
     text-transform: uppercase;
-    border-bottom: 3px solid #111111;
     display: inline-block;
     padding-bottom: 10px;
 }
@@ -122,7 +132,7 @@
 
 <div class="cart-container">
     <div class="cart-header">
-        <h1>Keranjang Belanja</h1>
+        <h1><i class="fa-solid fa-shopping-cart" style="color: rgb(28, 37, 53);"></i> Keranjang Belanja </h1>
     </div>
 
     <?php if (empty($data['cart'])) : ?>

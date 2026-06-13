@@ -14,13 +14,32 @@ class Product extends Controller {
 // 📦 KATALOG PRODUK
 // =========================
 public function index() {
-    $data['judul'] = 'Katalog Produk';
-    $data['products'] = $this->model('Product_model')->getAllProducts();
+        $data['judul'] = 'Katalog Produk';
+        
+        // Cek urutan
+        $sort = isset($_GET['sort']) ? $_GET['sort'] : 'terbaru';
+        $data['sort_aktif'] = $sort;
+        
+        // ==========================================
+        // PENGATURAN PAGINATION
+        // ==========================================
+        $limit = 8; // Jumlah maksimal produk yang tampil per halaman
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1; // Cek sedang di halaman berapa
+        $offset = ($page - 1) * $limit; // Rumus titik mulai produk
+        
+        // Hitung total halaman
+        $total_produk = $this->model('Product_model')->getTotalProducts();
+        $data['total_halaman'] = ceil($total_produk / $limit); // ceil = bulatkan ke atas
+        $data['halaman_aktif'] = $page;
+        // ==========================================
 
-    $this->view('templates/header', $data);
-    $this->view('product/index', $data);
-    $this->view('templates/footer');
-}
+        // Ambil data produk dengan batasan limit & offset
+        $data['products'] = $this->model('Product_model')->getAllProducts($sort, $limit, $offset);
+
+        $this->view('templates/header', $data);
+        $this->view('product/index', $data);
+        $this->view('templates/footer');
+    }
 
 // =========================
 // 📂 FILTER KATEGORI
